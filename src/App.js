@@ -1,6 +1,9 @@
 import Header from "./Components/Header/Header";
 import styled from "styled-components";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { db } from './firebaseConfig';
+import { useState, useEffect } from "react";
+import { collection, getDocs } from 'firebase/firestore';
 
 const Main = styled.main`
   width: 100%;
@@ -39,14 +42,48 @@ const Text = styled.h1`
   font-family: 'Inter', sans-serif;
 `;
 
-const data = [
-  { month: 'JAN', bagaco: 10, couro: 5, residuos: 5 },
-  { month: 'FEV', bagaco: 20, couro: 10, residuos: 10 },
-  { month: 'MAR', bagaco: 25, couro: 15, residuos: 10 },
-  { month: 'ABR', bagaco: 30, couro: 20, residuos: 10 },
-];
-
 function App() {
+  const [data, setData] = useState([]);
+  const [eficienciaAtual, setEficienciaAtual] = useState("00");
+
+  useEffect(() => {
+    const fetchGraficoData = async () => {
+      try {
+        const snapshot = await getDocs(collection(db, 'grafico'));
+        const graficoData = [];
+
+        for (const docSnap of snapshot.docs) {
+          const docData = docSnap.data();
+          const id = docSnap.id;
+          const mes = id.split('_')[1];
+
+          graficoData.push({
+            month: mes.toUpperCase(),
+            bagaco: docData.bagasse_production || 0,
+            couro: docData.leather_production || 0,
+            residuos: docData.residuos || 0,
+            eficiencia: docData.eficiencia || 0,
+          });
+        };
+
+        const mesesOrdem = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
+        graficoData.sort((a, b) => {
+          return mesesOrdem.indexOf(a.month.toLowerCase()) - mesesOrdem.indexOf(b.month.toLowerCase());
+        });
+
+        setData(graficoData);
+        if (graficoData.length > 0) {
+          setEficienciaAtual(graficoData[graficoData.length - 1].eficiencia.toString().padStart(2, '0'));
+        }
+
+      } catch (error) {
+        console.error("Erro ao buscar dados do grafico.", error);
+      }
+    };
+
+    fetchGraficoData();
+  }, []);
+
   return (
     <>
       <Header />
@@ -66,7 +103,7 @@ function App() {
           </ResponsiveContainer>
         </ChartContainer>
         <Content>
-          <Text >EFICIÊNCIA: 00%</Text>
+          <Text>EFICIÊNCIA: {eficienciaAtual}%</Text>
         </Content>
       </Main>
     </>
