@@ -52,19 +52,33 @@ function App() {
         const snapshot = await getDocs(collection(db, 'grafico'));
         const graficoData = [];
 
+        let totalBagaco = 0;
+        let totalCouro = 0;
+
         for (const docSnap of snapshot.docs) {
           const docData = docSnap.data();
           const id = docSnap.id;
           const mes = id.split('_')[1];
+          const mesLower = mes.toLowerCase();
+
+          const bagaco = docData.bagasse_production || 0;
+          const couro = docData.leather_production || 0;
+          const residuos = docData.residuos || 0;
+          const eficiencia = docData.eficiencia || 0;
 
           graficoData.push({
             month: mes.toUpperCase(),
-            bagaco: docData.bagasse_production || 0,
-            couro: docData.leather_production || 0,
-            residuos: docData.residuos || 0,
-            eficiencia: docData.eficiencia || 0,
+            bagaco,
+            couro,
+            residuos,
+            eficiencia,
           });
-        };
+
+          if (["jan", "fev", "mar", "abr"].includes(mesLower)) {
+            totalBagaco += bagaco;
+            totalCouro += couro;
+          }
+        }
 
         const mesesOrdem = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
         graficoData.sort((a, b) => {
@@ -72,8 +86,12 @@ function App() {
         });
 
         setData(graficoData);
-        if (graficoData.length > 0) {
-          setEficienciaAtual(graficoData[graficoData.length - 1].eficiencia.toString().padStart(2, '0'));
+
+        if (totalBagaco > 0) {
+          const eficienciaCalculada = ((totalCouro / totalBagaco) * 100).toFixed(2);
+          setEficienciaAtual(eficienciaCalculada);
+        } else {
+          setEficienciaAtual("00");
         }
 
       } catch (error) {
@@ -83,6 +101,7 @@ function App() {
 
     fetchGraficoData();
   }, []);
+
 
   return (
     <>
