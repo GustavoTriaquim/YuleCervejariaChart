@@ -52,14 +52,13 @@ function App() {
         const snapshot = await getDocs(collection(db, 'grafico'));
         const graficoData = [];
 
-        let totalBagaco = 0;
-        let totalCouro = 0;
+        let somaEficiencia = 0;
+        let mesesComEficiencia = 0;
 
         for (const docSnap of snapshot.docs) {
           const docData = docSnap.data();
           const id = docSnap.id;
           const mes = id.split('_')[1];
-          const mesLower = mes.toLowerCase();
 
           const bagaco = docData.bagasse_production || 0;
           const couro = docData.leather_production || 0;
@@ -74,9 +73,9 @@ function App() {
             eficiencia,
           });
 
-          if (["jan", "fev", "mar", "abr"].includes(mesLower)) {
-            totalBagaco += bagaco;
-            totalCouro += couro;
+          if (!Number.isNaN(eficiencia)) {
+            somaEficiencia += eficiencia;
+            mesesComEficiencia++;
           }
         }
 
@@ -87,9 +86,9 @@ function App() {
 
         setData(graficoData);
 
-        if (totalBagaco > 0) {
-          const eficienciaCalculada = ((totalCouro / totalBagaco) * 100).toFixed(2);
-          setEficienciaAtual(eficienciaCalculada);
+        if (mesesComEficiencia > 0) {
+          const mediaEficiencia = (somaEficiencia / mesesComEficiencia).toFixed(2);
+          setEficienciaAtual(mediaEficiencia);
         } else {
           setEficienciaAtual("00");
         }
