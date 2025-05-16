@@ -4,7 +4,7 @@ This web-based dashboard, built with **React.js**, provides ant interface for mo
 
 ## 🖼️ Preview
 
-![Dashboard Screenshot](./assets/dashboard.png)
+![Dashboard Screenshot](./assets/Screenshot 2025-05-15 090330.png)
 
 ## 🔎 Features
 - 📊 Interactive chars showing:
